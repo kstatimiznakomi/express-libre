@@ -10,7 +10,7 @@ app.get('/', (req, res) => {
     res.json({msg: 'this is msg'})
 })
 
-app.get('/catalog/:page', (req,res) => {
+app.get('/api/v1/catalog/:page', (req,res) => {
     let offset = 0
     for (let i = 1; i < req.params.page; i++){
         offset += 8
