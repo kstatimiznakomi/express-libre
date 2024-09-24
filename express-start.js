@@ -18,11 +18,19 @@ app.get('/api/v1/catalog/:page', (req,res) => {
     Book(db.sequelize).findAll({
         offset: offset,
         limit: 8
-    })
-        .then(data => res.json(data))
-    //res.json(catalog.getCatalog(req,res))
+    }).then(data => res.json(data))
 })
 
-app.use(express.json())
+app.get('/api/v1/book/:id', (req,res) => {
+    Book(db.sequelize).findByPk(req.params.id)
+        .then(data => {
+            if (!data) res.json({
+                statusCode: 404,
+                error: 'Данная книга отсутствует в библиотеке'
+            })
+            else res.json(data)
+        })
+})
+
 
 app.listen(port)
