@@ -1,6 +1,8 @@
 const dbConfig = require("../config/db.config.js");
 
 const Sequelize = require("sequelize");
+const Book = require("./book.model");
+const Author = require("./author.model");
 const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
     host: dbConfig.HOST,
     dialect: dbConfig.dialect,
@@ -14,12 +16,21 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
     }
 });
 
-sequelize.sync()
-
-
 const db = {};
 
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
+
+
+/*Author(db.sequelize).belongsToMany(Book(db.sequelize), {
+    through: 'author_books',
+    as: 'book',
+    foreignKey: 'authors_id'
+})
+Book(db.sequelize).belongsToMany(Author(db.sequelize), {
+    through: 'author_books',
+    as: 'author',
+    foreignKey: 'books_id'
+})*/
 
 module.exports = db;

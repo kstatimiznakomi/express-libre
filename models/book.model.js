@@ -1,4 +1,5 @@
 const {DataTypes} = require("sequelize");
+const Author = require("./author.model");
 module.exports = (sequelize) => {
     const Book = sequelize.define('book', {
         id: {
@@ -29,5 +30,12 @@ module.exports = (sequelize) => {
         }
     );
 
+    /*Book.associate = () => {
+        Book.belongsToMany(Author, {
+            through: 'author_books',
+            as: 'author',
+            foreignKey: 'books_id'
+        })
+    }*/
     return Book;
 };
