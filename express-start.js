@@ -23,20 +23,15 @@ app.get('/api/v1/catalog/:page', (req,res) => {
         offset += 8
     }
     Book(db.sequelize).findAll().then((data) => {
-        console.log(1)
-        allPages = Math.round(data.length / limit)})
-    Book(db.sequelize).findAll({
-        offset: offset,
-        limit: limit
-    }).then((data) => {
-        console.log(2)
-        if(page <= 0) res.redirect('http://localhost:8000/api/v1/catalog/1')
-        /*else if (data.length <= 0) {
-
-        }*/
-        else res.json(data)
-        /*if() return app.redirect('/api/v1/catalog/' + Book(db.sequelize).findAll().then((data) => {return data.length / limit}))*/
-
+        allPages = Math.round(data.length / limit)
+        Book(db.sequelize).findAll({
+            offset: offset,
+            limit: limit
+        }).then((data) => {
+            if(page <= 0) res.redirect('http://localhost:8000/api/v1/catalog/1')
+            else if (page > allPages) res.redirect('http://localhost:8000/api/v1/catalog/' + allPages)
+            else res.json(data)
+        })
     })
 })
 
