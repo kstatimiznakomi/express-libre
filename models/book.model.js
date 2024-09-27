@@ -1,7 +1,22 @@
-const {DataTypes} = require("sequelize");
+const {DataTypes, Sequelize, Model} = require("sequelize");
 const Author = require("./author.model");
-module.exports = (sequelize) => {
-    const Book = sequelize.define('book', {
+const dbConfig = require("../config/config");
+const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
+    host: dbConfig.HOST,
+    dialect: dbConfig.dialect,
+    operatorsAliases: false,
+    port: 5432,
+    pool: {
+        max: dbConfig.pool.max,
+        min: dbConfig.pool.min,
+        acquire: dbConfig.pool.acquire,
+        idle: dbConfig.pool.idle
+    }
+})
+
+class Book extends Model {}
+
+Book.init({
         id: {
             primaryKey: true,
             type: DataTypes.NUMBER,
@@ -23,19 +38,12 @@ module.exports = (sequelize) => {
             type: DataTypes.NUMBER
         },
     },
-        {
-            timestamps: false,
-            tableName: 'book',
-            modelName: 'book',
-        }
-    );
+    {
+        sequelize,
+        timestamps: false,
+        tableName: 'book',
+        modelName: 'book',
+    }
+);
 
-    /*Book.associate = () => {
-        Book.belongsToMany(Author, {
-            through: 'author_books',
-            as: 'author',
-            foreignKey: 'books_id'
-        })
-    }*/
-    return Book;
-};
+module.exports = Book
