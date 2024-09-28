@@ -1,5 +1,6 @@
 const {DataTypes, Model, Sequelize} = require("sequelize");
 const dbConfig = require("../config/config");
+const {hash} = require("bcrypt");
 const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
     host: dbConfig.HOST,
     dialect: dbConfig.dialect,
@@ -12,6 +13,7 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
         idle: dbConfig.pool.idle
     }
 })
+const bcrypt = require('bcrypt');
 
 class User extends Model{}
 
@@ -25,7 +27,6 @@ User.init({
         email: DataTypes.STRING,
         password: DataTypes.STRING,
         role: DataTypes.STRING,
-        status: DataTypes.STRING,
         username: DataTypes.STRING,
         name: DataTypes.STRING,
         lastname: DataTypes.STRING,

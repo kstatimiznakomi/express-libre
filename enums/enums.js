@@ -1,5 +1,6 @@
- enum UserRoles {
-    reader = 'Читатель',
-    admin = 'Администратор',
-    }
+ const UserRoles = {
+    reader: string = 'Читатель',
+    admin: string = 'Администратор',
+ }
+
  module.exports = UserRoles
