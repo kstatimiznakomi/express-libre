@@ -48,18 +48,21 @@ const buildQuery = (filters) => {
     const query = {
         where: {}
     }
-    if (filters.searchText) {
-        query.where.book_name = {[Op.iLike]:`%${filters.searchText}%`}
+    if (filters.t) {
+        query.where.book_name = {[Op.iLike]:`%${filters.t}%`}
     }
-    if (filters.authorId) {
+    if (filters.pd) {
+        query.where.public_date = filters.pd
+    }
+    if (filters.aid) {
         include.push({
             model: Author,
             through: 'author_books',
-            attributes: [],
-            as: 'author',
+            as: Author.tableName,
             required: true,
         })
-        query.where = sequelize.literal(`"author->author_books"."authors_id"='${filters.authorId}'`)
+        query.where.authors_id =
+            sequelize.literal(`"author->author_books"."authors_id"='${filters.aid}'`)
     }
     if (filters.genreId) {
         query.where.genreId = filters.genreId
@@ -67,17 +70,15 @@ const buildQuery = (filters) => {
     if (filters.publisherId) {
         query.where.publisherId = filters.publisherId
     }
-    if (filters.Date) {
-        query.where.Date = filters.Date
-    }
     return {query, include}
 }
 
 const search = async (req, res) => {
     let where = buildQuery(Object.assign(req.query)).query.where
     let include = buildQuery(Object.assign(req.query)).include
-    console.log(include,where)
+    console.log(where)
     Book.findAll({
+        attributes: ['book_name','count', 'description'],
         include,
         where
     }).then(data => {
