@@ -1,13 +1,15 @@
-const Book = require('../models/book.model.js')
+const {Book} = require('../models/index')
 const {json} = require("express");
 const {port} = require('../constants/constants')
 const {Sequelize} = require("sequelize");
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const UserRoles = require("../enums/enums");
+const {Author} = require("../models/index");
+const sequelize = require("sequelize");
 const Op = Sequelize.Op;
 
-const getCatalog = async (req,res) => {
+const getCatalog = async (req, res) => {
     let offset = 0
     const limit = 8
     const page = req.params.page
@@ -28,7 +30,7 @@ const getCatalog = async (req,res) => {
     })
 }
 
-const getBookById = async (req,res) => {
+const getBookById = async (req, res) => {
     Book.findByPk(req.params.id)
         .then((data) => {
             if (!data) return res.json({
@@ -41,18 +43,49 @@ const getBookById = async (req,res) => {
         })
 }
 
-const search = async (req,res) => {
-    for (let item in req.query) console.log(item)
+const buildQuery = (filters) => {
+    const include = []
+    const query = {
+        where: {}
+    }
+    if (filters.searchText) {
+        query.where.book_name = {[Op.iLike]:`%${filters.searchText}%`}
+    }
+    if (filters.authorId) {
+        include.push({
+            model: Author,
+            through: 'author_books',
+            attributes: [],
+            as: 'author',
+            required: true,
+        })
+        query.where = sequelize.literal(`"author->author_books"."authors_id"='${filters.authorId}'`)
+    }
+    if (filters.genreId) {
+        query.where.genreId = filters.genreId
+    }
+    if (filters.publisherId) {
+        query.where.publisherId = filters.publisherId
+    }
+    if (filters.Date) {
+        query.where.Date = filters.Date
+    }
+    return {query, include}
+}
+
+const search = async (req, res) => {
+    let where = buildQuery(Object.assign(req.query)).query.where
+    let include = buildQuery(Object.assign(req.query)).include
+    console.log(include,where)
     Book.findAll({
-        where: {
-            book_name: {[Op.iLike]: `%${req.query.searchText}%`}
-        }
+        include,
+        where
     }).then(data => {
         res.json(data)
     })
 }
 
-const getUserProfile = async (req,res) => {
+const getUserProfile = async (req, res) => {
     User.findByPk(req.params.id, {
         attributes: ['username', 'name', 'lastname', 'surname']
     }).then((data) => {
@@ -68,7 +101,7 @@ const inProcess = async (res) => {
     return res.json({msg: 'in process...'})
 }
 
-const createUser = async (req,res) => {
+const createUser = async (req, res) => {
     try {
         const foundUser = User.findAll({
             where: {

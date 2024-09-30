@@ -24,7 +24,7 @@ app.get('/api/v1/profile/:id', (req, res) => {
     getUserProfile(req, res)
 })
 
-app.post('/api/v1/create-user', (req, res) => {
+app.post('/api/v1/register', (req, res) => {
     createUser(req, res)
 })
 

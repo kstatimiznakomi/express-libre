@@ -14,7 +14,8 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
     }
 })
 
-class Author extends Model {}
+class Author extends Model {
+}
 
 Author.init({
         id: {
@@ -34,6 +35,5 @@ Author.init({
         modelName: 'author',
     },
 );
-
 
 module.exports = Author

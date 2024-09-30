@@ -1,4 +1,4 @@
-const {DataTypes, Sequelize, Model} = require("sequelize");
+const {DataTypes, Sequelize, Model, InferAttributes, InferCreationAttributes} = require("sequelize");
 const Author = require("./author.model");
 const dbConfig = require("../config/config");
 const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
@@ -14,7 +14,8 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
     }
 })
 
-class Book extends Model {}
+class Book extends Model {
+}
 
 Book.init({
         id: {
