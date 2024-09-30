@@ -27,8 +27,8 @@ Genres.init({
     {
         sequelize,
         timestamps: false,
-        tableName: 'author',
-        modelName: 'author',
+        tableName: 'genres',
+        modelName: 'genres',
     }
 );
 module.exports = Genres

@@ -2,6 +2,7 @@ const Sequelize = require('sequelize');
 const dbConfig = require('../config/config.js');
 const Book = require("./book.model");
 const Author = require("./author.model");
+const Genre = require("./genre.model");
 const db = {};
 
 let sequelize;
@@ -33,7 +34,6 @@ Author.belongsToMany(Book, {
     foreignKey: 'authors_id',
 })
 
-
 Book.belongsToMany(Author, {
     timestamps: false,
     through: 'author_books',
@@ -41,8 +41,21 @@ Book.belongsToMany(Author, {
     foreignKey: 'books_id',
 })
 
+Book.belongsToMany(Genre, {
+    timestamps: false,
+    through: 'genres_books',
+    as: 'genres',
+    foreignKey: 'books_id',
+})
+
+Genre.belongsToMany(Book, {
+    timestamps: false,
+    through: 'genres_books',
+    as: 'genres',
+    foreignKey: 'genres_id',
+})
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-module.exports = {db, Book, Author};
+module.exports = {db, Book, Author, Genre};

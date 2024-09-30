@@ -1,11 +1,10 @@
-const {Book} = require('../models/index')
 const {json} = require("express");
 const {port} = require('../constants/constants')
 const {Sequelize} = require("sequelize");
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const UserRoles = require("../enums/enums");
-const {Author} = require("../models/index");
+const {Genre, Book,Author} = require("../models/index");
 const sequelize = require("sequelize");
 const Op = Sequelize.Op;
 
@@ -61,11 +60,17 @@ const buildQuery = (filters) => {
             as: Author.tableName,
             required: true,
         })
-        query.where.authors_id =
-            sequelize.literal(`"author->author_books"."authors_id"='${filters.aid}'`)
+        query.where.authors_id = sequelize.literal(`"author->author_books"."authors_id"='${filters.aid}'`)
     }
-    if (filters.genreId) {
-        query.where.genreId = filters.genreId
+    if (filters.gen) {
+        include.push({
+            model: Genre,
+            through: 'genres_books',
+            column: 'genres_id',
+            as: Genre.tableName,
+            required: true,
+        })
+        query.where.genres_id = sequelize.literal(`"genres->genres_books"."genres_id"='${filters.gen}'`)
     }
     if (filters.publisherId) {
         query.where.publisherId = filters.publisherId
@@ -76,7 +81,6 @@ const buildQuery = (filters) => {
 const search = async (req, res) => {
     let where = buildQuery(Object.assign(req.query)).query.where
     let include = buildQuery(Object.assign(req.query)).include
-    console.log(where)
     Book.findAll({
         attributes: ['book_name','count', 'description'],
         include,
