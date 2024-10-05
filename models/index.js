@@ -1,5 +1,5 @@
 const Sequelize = require('sequelize');
-const dbConfig = require('../config/config.js');
+const dbConfig = require('../config/config.json');
 const Book = require("./book.model");
 const Author = require("./author.model");
 const Genre = require("./genre.model");

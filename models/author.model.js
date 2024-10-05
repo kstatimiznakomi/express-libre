@@ -1,6 +1,6 @@
 const {DataTypes, Sequelize, Model} = require("sequelize");
 const Book = require('../models/book.model.js')
-const dbConfig = require("../config/config");
+const dbConfig = require("../config/config.json");
 const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
     host: dbConfig.HOST,
     dialect: dbConfig.dialect,

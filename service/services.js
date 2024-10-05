@@ -1,14 +1,15 @@
-const {json} = require("express");
 const {port} = require('../constants/constants')
 const {Sequelize} = require("sequelize");
+const {generateToken, verifyUser} = require("./jwt-service");
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const UserRoles = require("../enums/enums");
-const {Genre, Book,Author} = require("../models/index");
+const {Genre, Book, Author} = require("../models/index");
 const sequelize = require("sequelize");
 const Op = Sequelize.Op;
 
 const getCatalog = async (req, res) => {
+    verifyUser(req, res)
     let offset = 0
     const limit = 8
     const page = req.params.page
@@ -22,20 +23,35 @@ const getCatalog = async (req, res) => {
             offset: offset,
             limit: limit,
         }).then((data) => {
-            if (page <= 0) res.redirect('http://localhost:' + port + '/api/v1/catalog/1')
+            if (page <= 0) redirectToCat1(res)
             else if (page > allPages) res.redirect('http://localhost:' + port + '/api/v1/catalog/' + allPages)
             else res.json(data)
         })
     })
 }
 
+const redirectToCat1 = (res) => {
+    return res.redirect('http://localhost:' + port + '/api/v1/catalog/1')
+}
+
+const noData = (res) => {
+    return res.json({
+        statusCode: 404,
+        error: 'По запросу ничего не было найдено:('
+    })
+}
+
+const noUserFound = (res) => {
+    return res.json({
+        statusCode: 404,
+        error: 'Данного пользователя не существует :('
+    })
+}
+
 const getBookById = async (req, res) => {
     Book.findByPk(req.params.id)
         .then((data) => {
-            if (!data) return res.json({
-                statusCode: 404,
-                error: 'Данная книга отсутствует в библиотеке'
-            })
+            if (!data) noData(res)
             else {
                 return res.json(Object.assign(data).dataValues)
             }
@@ -48,15 +64,16 @@ const buildQuery = (filters) => {
         where: {}
     }
     if (filters.t) {
-        query.where.book_name = {[Op.iLike]:`%${filters.t}%`}
+        query.where.book_name = {[Op.iLike]: `%${filters.t}%`}
     }
-    if (filters.pd) {
-        query.where.public_date = filters.pd
+    if (filters.d) {
+        query.where.public_date = filters.d
     }
     if (filters.aid) {
         include.push({
             model: Author,
             through: 'author_books',
+            attributes: [],
             as: Author.tableName,
             required: true,
         })
@@ -66,6 +83,7 @@ const buildQuery = (filters) => {
         include.push({
             model: Genre,
             through: 'genres_books',
+            attributes: [],
             column: 'genres_id',
             as: Genre.tableName,
             required: true,
@@ -82,11 +100,12 @@ const search = async (req, res) => {
     let where = buildQuery(Object.assign(req.query)).query.where
     let include = buildQuery(Object.assign(req.query)).include
     Book.findAll({
-        attributes: ['book_name','count', 'description'],
+        attributes: ['book_name', 'count', 'description'],
         include,
         where
-    }).then(data => {
-        res.json(data)
+    }).then((data) => {
+        if (!data.length) noData(res)
+        else res.json(data)
     })
 }
 
@@ -94,10 +113,7 @@ const getUserProfile = async (req, res) => {
     User.findByPk(req.params.id, {
         attributes: ['username', 'name', 'lastname', 'surname']
     }).then((data) => {
-        if (!data) res.json({
-            statusCode: 404,
-            error: 'Данного пользователя не существует :('
-        })
+        if (!data) noUserFound(res)
         else res.json(data)
     })
 }
@@ -126,6 +142,7 @@ const createUser = async (req, res) => {
                 phone: req.body.phone,
                 role: UserRoles.reader,
             }).then(() => {
+                //res.status(200).header('auth-token', generateToken(req, data[0].dataValues)),
                 res.json({
                     statusCode: 200,
                     msg: 'Вы успешно зарегистрированы!'
@@ -142,31 +159,31 @@ const createUser = async (req, res) => {
 }
 
 const login = async (req, res) => {
-    User.findAll({
-        where: {
-            username: req.body.username,
-        }
-    })
-        .then((data) => {
-            if (!data.length) {
-                res.json({
-                    statusCode: 404,
-                    msg: "Данного пользователя не существует!"
-                })
-            } else {
-                console.log(req.body.password, data[0].dataValues.password)
-                bcrypt.compareSync(req.body.password, data[0].dataValues.password) ?
-                    res.json({
-                        statusCode: 200,
-                        msg: 'Вы упешно вошли!'
-                    })
-                    :
+    try {
+        User.findAll({
+            where: {
+                username: req.body.username,
+            }
+        })
+            .then((data) => {
+                if (!data.length) noUserFound(res)
+                else {
+                    bcrypt.compareSync(req.body.password, data[0].dataValues.password) ? (
+                        res.status(200).header('auth-token', generateToken(req, data[0].dataValues)),
+                        res.json({
+                            statusCode: 200,
+                            msg: 'Вы упешно вошли!',
+                        }))
+                :
                     res.json({
                         statusCode: 400,
                         msg: 'Неверный пароль!'
                     })
-            }
-        })
+                }
+            })
+    } catch (er) {
+        console.log(er)
+    }
 }
 
 module.exports = {getBookById, getCatalog, search, inProcess, getUserProfile, createUser, login}

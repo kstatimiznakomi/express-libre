@@ -1,5 +1,5 @@
 const {DataTypes, Model, Sequelize} = require("sequelize");
-const dbConfig = require("../config/config");
+const dbConfig = require("../config/config.json");
 const {hash} = require("bcrypt");
 const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
     host: dbConfig.HOST,
