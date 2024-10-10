@@ -1,23 +1,9 @@
 const Sequelize = require('sequelize');
-const dbConfig = require('../config/config.json');
 const Book = require("./book.model");
 const Author = require("./author.model");
 const Genre = require("./genre.model");
+const {sequelize} = require("../constants/constants");
 const db = {};
-
-let sequelize;
-sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
-    host: dbConfig.HOST,
-    dialect: dbConfig.dialect,
-    operatorsAliases: false,
-    port: 5432,
-    pool: {
-        max: dbConfig.pool.max,
-        min: dbConfig.pool.min,
-        acquire: dbConfig.pool.acquire,
-        idle: dbConfig.pool.idle
-    }
-});
 
 
 Object.keys(db).forEach(modelName => {

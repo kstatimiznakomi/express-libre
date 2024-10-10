@@ -1,19 +1,5 @@
-const {DataTypes, Model, Sequelize} = require("sequelize");
-const dbConfig = require("../config/config.json");
-const {hash} = require("bcrypt");
-const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
-    host: dbConfig.HOST,
-    dialect: dbConfig.dialect,
-    operatorsAliases: false,
-    port: 5432,
-    pool: {
-        max: dbConfig.pool.max,
-        min: dbConfig.pool.min,
-        acquire: dbConfig.pool.acquire,
-        idle: dbConfig.pool.idle
-    }
-})
-const bcrypt = require('bcrypt');
+const {DataTypes, Model} = require("sequelize");
+const {sequelize} = require("../constants/constants");
 
 class User extends Model{}
 

@@ -1,21 +1,7 @@
-const {DataTypes, Sequelize, Model, InferAttributes, InferCreationAttributes} = require("sequelize");
-const Author = require("./author.model");
-const dbConfig = require("../config/config.json");
-const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
-    host: dbConfig.HOST,
-    dialect: dbConfig.dialect,
-    operatorsAliases: false,
-    port: 5432,
-    pool: {
-        max: dbConfig.pool.max,
-        min: dbConfig.pool.min,
-        acquire: dbConfig.pool.acquire,
-        idle: dbConfig.pool.idle
-    }
-})
+const {DataTypes, Model} = require("sequelize");
+const {sequelize} = require("../constants/constants");
 
-class Book extends Model {
-}
+class Book extends Model {}
 
 Book.init({
         id: {

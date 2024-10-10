@@ -1,38 +1,12 @@
 const {port} = require('../constants/constants')
 const {Sequelize} = require("sequelize");
-const {generateToken, verifyUser} = require("./jwt-service");
+const {generateToken, verifyUser, accessDenied} = require("./jwt-service");
 const User = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const UserRoles = require("../enums/enums");
 const {Genre, Book, Author} = require("../models/index");
 const sequelize = require("sequelize");
 const Op = Sequelize.Op;
-
-const getCatalog = async (req, res) => {
-    verifyUser(req, res)
-    let offset = 0
-    const limit = 8
-    const page = req.params.page
-    let allPages = 0
-    Book.findAll().then((data) => {
-        allPages = Math.ceil(data.length / limit)
-        if (page > allPages) for (let i = 1; i < allPages; i++) offset += 8
-        if (page <= 0) offset = 0
-        for (let i = 1; i < page; i++) offset += 8
-        Book.findAll({
-            offset: offset,
-            limit: limit,
-        }).then((data) => {
-            if (page <= 0) redirectToCat1(res)
-            else if (page > allPages) res.redirect('http://localhost:' + port + '/api/v1/catalog/' + allPages)
-            else res.json(data)
-        })
-    })
-}
-
-const redirectToCat1 = (res) => {
-    return res.redirect('http://localhost:' + port + '/api/v1/catalog/1')
-}
 
 const noData = (res) => {
     return res.json({
@@ -131,7 +105,7 @@ const createUser = async (req, res) => {
             }
         })
         if (!foundUser) {
-            User.create({
+            const User = await User.create({
                 email: req.body.email,
                 password: bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(10)),
                 name: req.body.name,
@@ -142,7 +116,7 @@ const createUser = async (req, res) => {
                 phone: req.body.phone,
                 role: UserRoles.reader,
             }).then(() => {
-                //res.status(200).header('auth-token', generateToken(req, data[0].dataValues)),
+                //res.status(200).header('auth-token', generateToken(req, User)),
                 res.json({
                     statusCode: 200,
                     msg: 'Вы успешно зарегистрированы!'
@@ -160,30 +134,53 @@ const createUser = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        User.findAll({
-            where: {
-                username: req.body.username,
-            }
-        })
-            .then((data) => {
-                if (!data.length) noUserFound(res)
-                else {
-                    bcrypt.compareSync(req.body.password, data[0].dataValues.password) ? (
-                        res.status(200).header('auth-token', generateToken(req, data[0].dataValues)),
-                        res.json({
-                            statusCode: 200,
-                            msg: 'Вы упешно вошли!',
-                        }))
-                :
-                    res.json({
-                        statusCode: 400,
-                        msg: 'Неверный пароль!'
-                    })
+        if (req.headers.token) res.redirect('http://localhost:' + port + '/api/v1/catalog/1')
+        else {
+            User.findAll({
+                where: {
+                    username: req.body.username,
                 }
             })
+                .then((data) => {
+                    if (!data.length) noUserFound(res)
+                    else {
+                        bcrypt.compareSync(req.body.password, data[0].dataValues.password) ? (
+                                res.status(200).header('auth-token', generateToken(req, data[0].dataValues)),
+                                    res.json({
+                                        statusCode: 200,
+                                        msg: 'Вы упешно вошли!',
+                                    }))
+                            :
+                            res.json({
+                                statusCode: 400,
+                                msg: 'Неверный пароль!'
+                            })
+                    }
+                })
+        }
+
     } catch (er) {
         console.log(er)
     }
 }
 
-module.exports = {getBookById, getCatalog, search, inProcess, getUserProfile, createUser, login}
+const patchUser = async (req, res) => {
+    try {
+        if (!req.headers.token) accessDenied(res)
+        else {
+            const userToken = verifyUser(req, res)
+            //User.find({where: { id: userToken.id }})
+            /*await User.update(userToken, { where: { id: userToken.id }, individualHooks: true })
+            User.set({
+                username: userToken.username,
+                password: bcrypt.hashSync(userToken.password, bcrypt.genSaltSync(10)),
+            })
+            User.save()*/
+            inProcess(res)
+        }
+    } catch (er) {
+        console.log(er)
+    }
+}
+
+module.exports = {getBookById, search, inProcess, getUserProfile, createUser, login, patchUser}

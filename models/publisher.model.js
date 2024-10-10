@@ -1,20 +1,23 @@
-const {DataTypes} = require("sequelize");
-module.exports = (sequelize) => {
-    const Publisher = sequelize.define('publisher', {
-            id: {
-                primaryKey: true,
-                type: DataTypes.NUMBER,
-                unique: true,
-                autoIncrement: true
-            },
-            publisher_name: DataTypes.STRING,
-        },
-        {
-            timestamps: false,
-            tableName: 'author',
-            modelName: 'author',
-        }
-    );
+const {DataTypes, Model} = require("sequelize");
+const {sequelize} = require("../constants/constants");
 
-    return Publisher;
-};
+class Publisher extends Model {}
+
+Publisher.init({
+        id: {
+            primaryKey: true,
+            type: DataTypes.NUMBER,
+            unique: true,
+            autoIncrement: true
+        },
+        publisher_name: DataTypes.STRING,
+    },
+    {
+        sequelize,
+        timestamps: false,
+        tableName: 'publisher',
+        modelName: 'publisher',
+    }
+);
+
+module.exports = Publisher;
